@@ -3,7 +3,7 @@
 Companion code and reproduction package for the paper
 
 > **When Does Design Thinking Work? A Convergence Theorem for the Iterate–Test Core**
-> Paweł Kuraś, Adrian Michalski, Alicja Gerka
+> Paweł Kuraś, Adrian Michalski, Alicja Gerka, Patryk Organisciak
 
 This repository contains everything needed to reproduce the figures, tables and
 reported statistics of the paper: a Monte-Carlo simulation of the
