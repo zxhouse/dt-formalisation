@@ -150,54 +150,5 @@ mathematical contributions.
 Code is released under the MIT License (see `LICENSE`). Please cite the paper if
 you use this code (see `CITATION.cff`).
 
-
-## Version 4 of the paper (October 2026)
-
-The simulation section of version 4 of the manuscript
-is produced by four scripts added to `code/`:
-
-| Script | What it does | Output |
-|---|---|---|
-| `engine.py` | The Ideate–Prototype–Test loop with integer-coded prototypes, lookup-table landscapes (main, DVF family, Kauffman NK) and exact local-optimum masks | imported by the others |
-| `studies.py` | `horizon`, `allocation`, `bias`, `baselines`, `dynamics`, `ablation` (run one, or `all`) | `results/<study>_results.json` |
-| `reframing2.py` | Reframing schedules vs the expected-improvement criterion at four reframing costs | `results/reframing2_results.json` |
-| `figures_v4.py` | Figures 2–5 of the v4 paper | `FigA.png` … `FigD.png` |
-
-Run them with `bash run_all.sh v4` (about 20 minutes on two cores), or all
-stages, old and new, with `bash run_all.sh`.
-
-**A correction to the earlier code.** In `simulation.py` the "round-robin"
-re-test picks `keys[k % len(keys)]`. Because one prototype is added per round,
-that index always points at the prototype built in the current round, so older
-prototypes were never revisited unless they were among the three leaders.
-`engine.loop` uses a true rotation by default (a queue) and reproduces the old
-behaviour only with `legacy=True`, which `engine.selfcheck()` uses to confirm
-bit-for-bit agreement with `simulation.run_design_process`. All v4 results use
-the corrected rotation; the results of `analysis.py`, `rates.py`,
-`landscapes.py` and `benchmarks.py` (versions 1–3 of the paper) were computed
-with the old behaviour and are kept for the record. The statement in versions
-1–3 that most runs "settle at local optima" should not be relied on: it measured
-only whether a run ended below the global optimum (see `studies.py horizon`).
-
-
-## Version 5 of the paper (October 2026)
-
-The manuscript itself is not part of this repository. `code/engine.py` and
-`code/studies.py` are the v5 versions; `code/reframing3.py` replaces
-`reframing2.py`, and `code/figures_v5.py` draws `FigA_v5.png` … `FigD_v5.png`.
-`results/*.json` are the v5 results. The v4 scripts and results are kept in
-`code/v4/` and `results/v4/`.
-
-Run `bash run_all.sh v5` (about 25 minutes on two cores).
-
-What changed in the code since v4:
-- `engine.loop`: ideas are always variants of the three leading prototypes
-  (`base_top`), independent of the number of re-tests; a `budget` mode spends
-  exactly that many tests per round; `n_new` may be fractional.
-- `studies.py allocation`: every arm now spends exactly 300 tests (in v4 the arm
-  that only built new prototypes ran out of ideas and spent about 130).
-- `studies.py ablation`: the row "no re-testing" is replaced by an equal-budget
-  row "all five tests on new prototypes".
-- `studies.py horizon`: checkpoints from 5 rounds.
-- `reframing3.py`: the criterion uses the team's beliefs only, has a minimum stay,
+criterion uses the team's beliefs only, has a minimum stay,
   and the payoff is the true utility of the prototype the team would ship.
