@@ -1,0 +1,203 @@
+# When Does Design Thinking Work? A Convergence Theorem for the Iterate–Test Core
+
+Companion code and reproduction package for the paper
+
+> **When Does Design Thinking Work? A Convergence Theorem for the Iterate–Test Core**
+> Paweł Kuraś, Adrian Michalski, Alicja Gerka
+
+This repository contains everything needed to reproduce the figures, tables and
+reported statistics of the paper: a Monte-Carlo simulation of the
+Ideate → Prototype → Test loop, the landscape-geometry and rate analysis, the
+reframing-policy and misspecification studies, a landscape-family robustness
+study, a matched-budget benchmark against baseline algorithms, and the coded
+protocol demonstrations. All experiments use fixed random seeds and depend only
+on `numpy` and `matplotlib`, so every number is reproducible end-to-end.
+
+---
+
+## What the model is (and is not)
+
+The paper analyses a **normative, idealized** model of the *decision core* of
+Design Thinking within a single problem-framing epoch. The mathematics *proves*
+conditional almost-sure convergence of the retained-best expected utility to a
+local optimum; the simulation *demonstrates* internal consistency of the model
+and maps the parameter space; whether real teams satisfy the assumptions
+*remains untested* (a pre-registered validation protocol is described in the
+paper). Nothing in this repository is empirical evidence about design teams —
+the Monte-Carlo study checks that the *implemented model* behaves as proved, not
+that Design Thinking does.
+
+---
+
+## Repository layout
+
+```
+design-thinking-formalization/
+├── README.md
+├── LICENSE                 # MIT
+├── CITATION.cff
+├── requirements.txt        # numpy, matplotlib
+├── run_all.sh              # one-command clean-room reproduction
+├── code/                   # all experiment scripts
+│   ├── simulation.py       # I–P–T loop, ensemble, core figures
+│   ├── analysis.py         # sensitivity + ablation sweep
+│   ├── rates.py            # landscape geometry & realized rates
+│   ├── reframing.py        # reframing-policy comparison + G_ref study
+│   ├── landscapes.py       # landscape-family robustness study
+│   ├── benchmarks.py       # matched-budget baseline comparison
+│   ├── empirical.py        # coded published cases + coder-perturbation
+│   ├── protocol_demo.py    # synthetic coded-protocol dry run
+│   └── diagrams.py         # process-flow and state-space diagrams
+├── figures/                # Fig1–Fig16 (PNG) as used in the paper
+├── results/                # raw numerical outputs (JSON) + generated table rows
+```
+
+## Requirements
+
+- Python ≥ 3.9
+- `numpy`, `matplotlib` (`pip install -r requirements.txt`)
+
+No other dependencies (no `scipy`, `networkx`, or GPU).
+
+## Reproducing everything
+
+```bash
+pip install -r requirements.txt
+bash run_all.sh
+```
+
+`run_all.sh` deletes any cached numerical outputs, re-runs the whole pipeline
+from scratch in dependency order, and collects the regenerated figures into
+`figures/` and the numerical outputs into `results/`. Runtime is roughly
+30–45 minutes on a typical laptop; `landscapes.py` and `benchmarks.py` are the
+two heavy stages. Individual scripts can also be run directly, e.g.
+`cd code && python3 simulation.py`.
+
+## Which script produces which figure
+
+| Figure | Script | What it shows |
+|--------|--------|---------------|
+| Fig1, Fig2 | `diagrams.py` | DT process flow; state-space graph |
+| Fig3 | `simulation.py` | Bayesian update / posterior concentration |
+| Fig4 | `simulation.py` | Utility landscape & value histogram |
+| Fig5 | `simulation.py` | Submartingale dynamics (theorem-consistent) |
+| Fig6 | `simulation.py` | ε-stopping rule |
+| Fig8 | `simulation.py` | Entropy across divergent/convergent phases |
+| Fig9 | `simulation.py` | Convergence diagnostics (Lyapunov potential, k\*) |
+| Fig10 | `analysis.py` | Sensitivity & ablation |
+| Fig11 | `protocol_demo.py` | Synthetic coded-protocol dry run |
+| Fig12 | `empirical.py` | Feasibility run on two published cases |
+| Fig13 | `reframing.py` | Reframing-policy comparison |
+| Fig14 | `reframing.py` (`run_gref_study`) | G_ref misspecification study |
+| Fig15 | `landscapes.py` | Robustness across a family of landscapes |
+| Fig16 | `benchmarks.py` | Matched-budget baseline comparison |
+
+Tables: `analysis.py` writes `results/sensitivity_rows.tex` and
+`results/ablation_rows.tex` (the bodies of the sensitivity and ablation tables);
+`rates.py`, `reframing.py`, `landscapes.py` and `benchmarks.py` write their
+numerical results to the corresponding `results/*.json`.
+
+## Key reproduced numbers (fixed seeds)
+
+| Quantity | Value |
+|----------|-------|
+| Global optimum U\* (main landscape, exhaustive) | 0.7634 |
+| Ensemble-mean X∞ (baseline, 250 runs) | 0.7373 |
+| Runs converging to a strict *local* optimum | 96.8% |
+| Cumulative drift E[Δ] ± 95% CI | +0.065 ± 0.007 |
+| Local optima at r_max = 1 / 2 / 3 | 4 / 2 / 1 |
+| Measured generativity δ̂ | 0.104 |
+| Rounds to run-limit / to within 1% / ε-stop k\* | 46.1 / 31.8 / 2.5 |
+| Landscape family (M=30): mean attained fraction of U\* | 97.7% |
+| Benchmarks (300-test budget), DT-loop shipped E[Y] | 0.7238 |
+| ε-greedy / UCB / random / greedy shipped E[Y] | 0.7177 / 0.7144 / 0.6944 / 0.6779 |
+
+## Notes on the model implementation
+
+Two implementation choices make the simulation match the *idealized* process the
+theorem is about rather than merely resemble it:
+
+- **Bounded belief (projection onto [0,1]).** The theorem's posterior mean
+  `M_k^p = E[U(p)|F_k]` is a conditional expectation of a bounded utility and so
+  lies in [0,1]. The conjugate normal–normal update is an unbounded Gaussian
+  approximation to it, so `UtilityBelief.update` projects the posterior mean onto
+  [0,1]. The projection is almost never active and changes no reported number.
+- **Round-robin exploratory retest.** Assumption 4 requires every retained
+  prototype to be tested infinitely often. Because a top-r retest rule alone can
+  let an older prototype fall out of the leading set, `run_design_process` adds
+  one round-robin retest per round, so the implemented loop genuinely satisfies
+  the infinite-retest condition over an infinite horizon.
+
+## Reproducibility and seeds
+
+Every script sets an explicit `numpy` random seed; ensemble runs derive per-run
+seeds deterministically. Re-running on the same Python/`numpy` version yields the
+numbers in the paper up to Monte-Carlo rounding. `run_all.sh` performs a full
+clean-room reproduction (it removes cached outputs first).
+
+## Declaration of generative-AI use
+
+A large-language-model assistant helped draft/revise prose and helped write and
+debug the accompanying Python code and reference formatting. It was **not** used
+to originate the theoretical model, assumptions, proofs, choice of experiments,
+or interpretation of results, and was not used to generate or alter any data.
+The commit history of this repository preserves the record of code changes so
+that implementation support remains distinguishable from the conceptual and
+mathematical contributions.
+
+## License
+
+Code is released under the MIT License (see `LICENSE`). Please cite the paper if
+you use this code (see `CITATION.cff`).
+
+
+## Version 4 of the paper (October 2026)
+
+The simulation section of version 4 of the manuscript
+is produced by four scripts added to `code/`:
+
+| Script | What it does | Output |
+|---|---|---|
+| `engine.py` | The Ideate–Prototype–Test loop with integer-coded prototypes, lookup-table landscapes (main, DVF family, Kauffman NK) and exact local-optimum masks | imported by the others |
+| `studies.py` | `horizon`, `allocation`, `bias`, `baselines`, `dynamics`, `ablation` (run one, or `all`) | `results/<study>_results.json` |
+| `reframing2.py` | Reframing schedules vs the expected-improvement criterion at four reframing costs | `results/reframing2_results.json` |
+| `figures_v4.py` | Figures 2–5 of the v4 paper | `FigA.png` … `FigD.png` |
+
+Run them with `bash run_all.sh v4` (about 20 minutes on two cores), or all
+stages, old and new, with `bash run_all.sh`.
+
+**A correction to the earlier code.** In `simulation.py` the "round-robin"
+re-test picks `keys[k % len(keys)]`. Because one prototype is added per round,
+that index always points at the prototype built in the current round, so older
+prototypes were never revisited unless they were among the three leaders.
+`engine.loop` uses a true rotation by default (a queue) and reproduces the old
+behaviour only with `legacy=True`, which `engine.selfcheck()` uses to confirm
+bit-for-bit agreement with `simulation.run_design_process`. All v4 results use
+the corrected rotation; the results of `analysis.py`, `rates.py`,
+`landscapes.py` and `benchmarks.py` (versions 1–3 of the paper) were computed
+with the old behaviour and are kept for the record. The statement in versions
+1–3 that most runs "settle at local optima" should not be relied on: it measured
+only whether a run ended below the global optimum (see `studies.py horizon`).
+
+
+## Version 5 of the paper (October 2026)
+
+The manuscript itself is not part of this repository. `code/engine.py` and
+`code/studies.py` are the v5 versions; `code/reframing3.py` replaces
+`reframing2.py`, and `code/figures_v5.py` draws `FigA_v5.png` … `FigD_v5.png`.
+`results/*.json` are the v5 results. The v4 scripts and results are kept in
+`code/v4/` and `results/v4/`.
+
+Run `bash run_all.sh v5` (about 25 minutes on two cores).
+
+What changed in the code since v4:
+- `engine.loop`: ideas are always variants of the three leading prototypes
+  (`base_top`), independent of the number of re-tests; a `budget` mode spends
+  exactly that many tests per round; `n_new` may be fractional.
+- `studies.py allocation`: every arm now spends exactly 300 tests (in v4 the arm
+  that only built new prototypes ran out of ideas and spent about 130).
+- `studies.py ablation`: the row "no re-testing" is replaced by an equal-budget
+  row "all five tests on new prototypes".
+- `studies.py horizon`: checkpoints from 5 rounds.
+- `reframing3.py`: the criterion uses the team's beliefs only, has a minimum stay,
+  and the payoff is the true utility of the prototype the team would ship.

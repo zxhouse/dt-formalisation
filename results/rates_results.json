@@ -1,0 +1,37 @@
+{
+  "n_features": 14,
+  "n_states": 16384,
+  "U_max": 0.7633660239578608,
+  "U_min": 0.3060346558908281,
+  "r1": {
+    "neighbourhood_size": 14,
+    "n_local_optima": 4,
+    "longest_improving_path": 66,
+    "mean_depth": 23.6322021484375,
+    "p90_depth": 37.0
+  },
+  "r2": {
+    "neighbourhood_size": 105,
+    "n_local_optima": 2,
+    "longest_improving_path": 532,
+    "mean_depth": 255.50408935546875,
+    "p90_depth": 396.0
+  },
+  "r3": {
+    "neighbourhood_size": 469,
+    "n_local_optima": 1,
+    "longest_improving_path": 1647,
+    "mean_depth": 826.7091064453125,
+    "p90_depth": 1321.0
+  },
+  "delta_hat": 0.1041069723018147,
+  "mean_first_hit": 46.068,
+  "median_first_hit": 46.0,
+  "mean_hit99": 31.768,
+  "median_hit99": 29.5,
+  "mean_improvements": 4.796,
+  "median_eps_stop": 2.0,
+  "mean_eps_stop": 2.472,
+  "bound_L_over_delta": 5110.128440366972,
+  "bound_realised_chain_over_delta": 46.068000000000005
+}
